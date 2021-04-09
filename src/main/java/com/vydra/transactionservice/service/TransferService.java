@@ -9,6 +9,8 @@ import com.vydra.transactionservice.persistence.repositories.AccountRepository;
 import com.vydra.transactionservice.persistence.repositories.TransactionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -21,6 +23,7 @@ public class TransferService {
     private AccountRepository accountRepository;
     private TransactionRepository transactionRepository;
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class )
     public Transaction transfer(final long sourceId, final long targetId, final BigDecimal amount)
             throws AccountException {
 
