@@ -74,20 +74,21 @@ class TransferControllerMVCTest {
 
     private static Stream<Arguments> exceptionsToStatuses() {
         return Stream.of(
-                Arguments.of(AccountNotFoundException.class, 404),
-                Arguments.of(AccountException.class, 400),
-                Arguments.of(IllegalArgumentException.class, 400),
-                Arguments.of(RuntimeException.class, 500));
+                Arguments.of(new AccountNotFoundException("not found"), 404),
+                Arguments.of(new AccountException("account issue"), 400),
+                Arguments.of(new IllegalArgumentException("illegal"), 400),
+                Arguments.of(new RuntimeException("runtime"), 500));
     }
 
     @ParameterizedTest
     @MethodSource("exceptionsToStatuses")
-    void shouldReturnErrorWhenServiceThrowsException(final Class<? extends Exception> exc, final int status)
+    void shouldReturnErrorWhenServiceThrowsException(final Exception exc, final int status)
             throws Exception {
         givenAValidRequest();
         givenTheServiceThrows(exc);
         whenPostTransfer();
         thenStatusIs(status);
+        thenResultBodyContainsMessage(exc.getMessage());
     }
 
     private void givenAValidRequest() {
@@ -100,8 +101,8 @@ class TransferControllerMVCTest {
                 .thenReturn(trans);
     }
 
-    private void givenTheServiceThrows(final Class<? extends Exception> exc) throws AccountException {
-        when(service.transfer(anyLong(), anyLong(), any())).thenThrow(exc);
+    private void givenTheServiceThrows(final Exception e) throws AccountException {
+        when(service.transfer(anyLong(), anyLong(), any())).thenThrow(e);
     }
 
     private void whenPostTransfer() throws Exception {
@@ -119,6 +120,11 @@ class TransferControllerMVCTest {
         TransactionResponse response = mapper.readValue(result.getResponse().getContentAsString(),
                 TransactionResponse.class);
         assertThat(response).isEqualTo(converter.convert(validTransaction()));
+    }
+
+    private void thenResultBodyContainsMessage(final String msg) throws UnsupportedEncodingException {
+        result = resultActions.andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(msg);
     }
 
     private Transaction validTransaction() {
