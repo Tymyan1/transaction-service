@@ -1,14 +1,18 @@
 package com.vydra.transactionservice.api;
 
 import com.vydra.transactionservice.api.model.TransactionDTO;
+import com.vydra.transactionservice.api.model.TransactionResponse;
+import com.vydra.transactionservice.api.model.converters.TransactionConverter;
 import com.vydra.transactionservice.error.AccountException;
 import com.vydra.transactionservice.persistence.model.Transaction;
 import com.vydra.transactionservice.service.TransferService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -17,6 +21,8 @@ import java.util.Currency;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -32,15 +38,18 @@ class TransferControllerTest {
     private ResponseEntity actResult;
     private Exception actThrown;
 
+    private TransactionResponse response;
     private TransactionDTO request;
     private Transaction transaction;
 
     @Mock
     private TransferService service;
+    @Spy
+    private TransactionConverter converter;
 
     @BeforeEach
     void setup () {
-        controller = new TransferController(service);
+        controller = new TransferController(service, converter);
     }
 
     @Test
@@ -48,6 +57,7 @@ class TransferControllerTest {
         givenARequest();
         givenTheServiceReturnsValidResult();
         whenTransferIsDone();
+        thenConverterGetsCalled();
         thenResultIsAsExpected();
     }
 
@@ -80,12 +90,16 @@ class TransferControllerTest {
         }
     }
 
+    private void thenConverterGetsCalled() {
+        verify(converter).convert(transaction);
+    }
+
     private void whenTransferIsDone() throws AccountException {
         actResult = controller.transfer(request);
     }
 
     private void thenResultIsAsExpected() {
-        assertThat(actResult).isEqualTo(ResponseEntity.ok().build());
+        assertThat(actResult).isEqualTo(ResponseEntity.ok(converter.convert(transaction)));
     }
 
     private void thenExceptionIsThrown(final Class<? extends Exception> exc) {

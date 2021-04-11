@@ -49,7 +49,7 @@ public class TransferService {
 
         if (source.getBalance().compareTo(amount) < 0) {
             throw new InsufficientFundsException("Account does not have enough balance to transfer %s %s",
-                    source.getBalance(), source.getCurrency().getCurrencyCode());
+                    amount, source.getCurrency().getCurrencyCode());
         }
 
         return doTransfer(source, target, amount);
