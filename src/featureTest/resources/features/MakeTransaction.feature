@@ -33,3 +33,10 @@ Feature: Allows making financial transactions between two bank accounts.
       When a transaction request is received
       #Then the balance of the existing account should remain the same - since the accounts don't exist, this makes no sense
       Then the client of the API should receive an error
+
+  Scenario: Negative money transfer
+    Given source account exists
+      And target account exists
+      And the transaction amount is negative
+    When a transaction request is received
+    Then the client of the API should receive an error

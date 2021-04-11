@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class TransactionSteps {
@@ -22,6 +24,11 @@ public class TransactionSteps {
     private RestTemplate serviceRest;
 
     private ResponseEntity response;
+
+    @Given("the transaction amount is negative")
+    public void negativeTransactionRequest() {
+        state.setAmount(BigDecimal.valueOf(-10));
+    }
 
     @Given("a transaction request from {word} to {word}")
     public void aTransactionRequest(final String source, final String target) {
