@@ -2,6 +2,7 @@ package com.vydra.transactionservice.api;
 
 import com.vydra.transactionservice.error.AccountException;
 import com.vydra.transactionservice.error.AccountNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 @RestControllerAdvice
+@Slf4j
 public class RestErrorHandler {
 
     @ExceptionHandler(AccountNotFoundException.class)
@@ -28,6 +30,7 @@ public class RestErrorHandler {
     }
 
     private ResponseEntity fromException(final Exception e, final HttpStatus status) {
+        log.error("An error occurred", e);
         return ResponseEntity.status(status)
                 .contentType(TEXT_PLAIN)
                 .body(e.getMessage());
